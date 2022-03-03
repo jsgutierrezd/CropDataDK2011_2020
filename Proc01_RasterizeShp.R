@@ -34,23 +34,26 @@ all <- lapply(files,function(x){
 
 # 4) Load raster object with parameters that rasterized shapefiles should be resampled to ----------------
 layer30 <- rast("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/3_TempDatabase/SOC_SpatioTemporal/STATIC_COVARIATES/StatCov.tif")
-layer30 <- layer[[1]]
+layer30 <- layer30[[1]]
 
 layer10 <- rast("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/3_TempDatabase/SOC_SpatioTemporal/STATIC_COVARIATES/StatCov.tif")
 layer10 <- 
 
 # 5) Rasterize shapefiles -------------------------------------------------
 
-names(all[[1]])[9] <- "AfgKode"
-names(all[[2]])[4] <- "AfgKode"
-names(all[[3]])[4] <- "AfgKode"
-names(all[[4]])[4] <- "AfgKode"
-names(all[[5]])[6] <- "AfgKode"
-names(all[[6]])[5] <- "AfgKode"
-names(all[[7]])[4] <- "AfgKode"
-names(all[[8]])[7] <- "AfgKode"
-names(all[[9]])[6] <- "AfgKode"
-names(all[[10]])[5] <- "AfgKode"
+{
+  names(all[[1]])[9] <- "AfgKode"
+  names(all[[2]])[4] <- "AfgKode"
+  names(all[[3]])[4] <- "AfgKode"
+  names(all[[4]])[4] <- "AfgKode"
+  names(all[[5]])[6] <- "AfgKode"
+  names(all[[6]])[5] <- "AfgKode"
+  names(all[[7]])[4] <- "AfgKode"
+  names(all[[8]])[7] <- "AfgKode"
+  names(all[[9]])[6] <- "AfgKode"
+  names(all[[10]])[5] <- "AfgKode"  
+}
+
 
 r <- rast()
 for (i in 1:length(all)) {
@@ -66,3 +69,7 @@ levels <- lapply(r,function(x){
 levels
 
 
+# 6) Save raster layers ---------------------------------------------------
+names(r) <- paste0("CropData_",2011:2020)
+saveRDS(names(r),"NamesCropData2011_2020.rds")
+terra::writeRaster(r,"CropData2011_2020.tif",datatype="INT4S",names=names(r))
