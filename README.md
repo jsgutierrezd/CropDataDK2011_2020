@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Rasterizing crop cover information"
 output: github_document
 ---
 
@@ -7,24 +7,21 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## GitHub Documents
+## Summary of the process
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+This document summarizes the procedures used for rasterizing and reclassifying the vector files of crop data for the period 2011-2020. 
 
-## Including Code
+### Procedure 01
 
-You can include R code in the document as follows:
+Documented in the *Proc01_RasterizeShp.R* file. 
 
-```{r cars}
-summary(cars)
-```
+A DEM of 10m-spatial resolution for the whole Denmark was considered as a reference layer in the rasterization process.
 
-## Including Plots
+Then the resulting raster layers were converted into categorical rasters and saved as a raster stack in the *CropData2011_2020_10m.tif* file. The *NamesCropData2011_2020_10m.rds* file contains the name of each raster layer. 
 
-You can also embed plots, for example:
+### Procedure 02
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+Documentes in the *Proc02_Crop_drain_req.R* file. The *crop_drain_req.csv* file was used to reclassify the values of the crop cover based on the drainage requirements.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The sum for each class and the total sum were computed and the final result is saved in the *IMK_sum.tif* and *IMK_sum_clipped.tif*. The later is the resulting layer from the sum operation but clipped with the boundaries of Denmark.
+
