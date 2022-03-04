@@ -8,7 +8,8 @@ setwd("O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020")
 
 # 2) Libraries ------------------------------------------------------------
 pckg <- c('terra',    
-          'raster'
+          'raster',
+          'magrittr'
 
 )
 
@@ -36,11 +37,12 @@ all <- lapply(files,function(x){
 layer30 <- rast("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/3_TempDatabase/SOC_SpatioTemporal/STATIC_COVARIATES/StatCov.tif")
 layer30 <- layer30[[1]]
 
-layer10 <- rast("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/3_TempDatabase/SOC_SpatioTemporal/STATIC_COVARIATES/StatCov.tif")
-layer10 <- 
+layer10 <- rast("DEM10m.tif")
+layer10
 
 # 5) Rasterize shapefiles -------------------------------------------------
 
+# Harmonize the name of the attribute to be rasterized in each vector layer
 {
   names(all[[1]])[9] <- "AfgKode"
   names(all[[2]])[4] <- "AfgKode"
@@ -54,15 +56,18 @@ layer10 <-
   names(all[[10]])[5] <- "AfgKode"  
 }
 
+# Rasterize the vector layers, convert them into categorical raster layers,
+# and save them in a raster stack using the terra package
 
 r <- rast()
 for (i in 1:length(all)) {
-  rtmp <- terra::rasterize(all[[i]], layer30, "AfgKode")
-  rtmp <- as.factor(rtmp)
+  rtmp <- terra::rasterize(all[[i]], layer10, "AfgKode") %>% 
+    as.factor()
   r <- c(r,rtmp)
 }
 r
 
+#Check the levels of each raster layer within the raster stack
 levels <- lapply(r,function(x){
   levels(x)
 })
@@ -71,5 +76,12 @@ levels
 
 # 6) Save raster layers ---------------------------------------------------
 names(r) <- paste0("CropData_",2011:2020)
-saveRDS(names(r),"NamesCropData2011_2020.rds")
-terra::writeRaster(r,"CropData2011_2020.tif",datatype="INT4S",names=names(r))
+saveRDS(names(r),"NamesCropData2011_2020.rds") #Save the names of each raster layer in one RDS file
+terra::writeRaster(r,"CropData2011_2020_10m.tif",
+                   datatype="INT4S",
+                   names=names(r),
+                   overwrite=T)
+
+#===============================================================
+# END
+#===============================================================
