@@ -3,10 +3,6 @@ title: "Rasterizing crop cover information"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ## Summary of the process
 
 This document summarizes the procedures used for rasterizing and reclassifying the vector files of crop data for the period 2011-2020. 
