@@ -1,5 +1,5 @@
 #===============================================================
-# Proc02 Crop drainage requirements
+# Proc02a Crop drainage requirements_rasterizedArcPro
 #===============================================================
 
 rm(list = ls())
@@ -26,8 +26,30 @@ lapply(pckg,usePackage)
 
 # 3) Load IMK layers ------------------------------------------------------
 
-IMK <- rast("CropData2011_2020_10m.tif")
-names(IMK) <- readRDS("NamesCropData2011_2020.rds")
+files <- list.files(path = paste0("O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/ArcPro/"),
+                    pattern = "\\.tif$",
+                    full.names = T
+)
+
+all <- lapply(files,function(x){
+  terra::rast(x)
+})
+
+
+# 4) Clip raster layers ---------------------------------------------------
+lim <- vect("Limit/LIMIT.shp")
+layer10 <- rast("DEM10m.tif")
+
+all <- lapply(all,function(x){
+  terra::crop(x,lim,mask=T)
+})
+
+all <- lapply(all,function(x){
+  terra::resample(x,layer10)
+})
+
+all <- rast(all)
+IMK <- all
 
 
 # 4) Load reclassification table ------------------------------------------
@@ -35,15 +57,17 @@ names(IMK) <- readRDS("NamesCropData2011_2020.rds")
 requirements <- read.table(file = 'crop_drain_req.csv',
                            sep = ';',
                            header = TRUE
-                           )
+)
 
 reclasser <- as.matrix(requirements[, c(1, 3)])
 
 # Check if the levels of each raster layer within the raster stack 
 # has a corresponding code in the reclassification table
-levels <- lapply(IMK,function(x){
+levels <- lapply(as.factor(IMK),function(x){
   levels(x)
 })
+
+
 
 check <- list()
 for (i in 1:10) {
@@ -69,10 +93,10 @@ reclasser <- as.matrix(rbind(reclasser,check1))
 start <- Sys.time()
 beginCluster(detectCores()-2)
 IMK_reclass <- clusterR(stack(IMK), reclassify,
-         args = list(rcl = reclasser),
-         filename = 'IMK_reclass.tif',
-         datatype = 'INT2U',
-         overwrite = TRUE
+                        args = list(rcl = reclasser),
+                        filename = 'IMK_reclass.tif',
+                        datatype = 'INT2U',
+                        overwrite = TRUE
 )
 endCluster()
 Sys.time()-start

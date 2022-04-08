@@ -34,9 +34,6 @@ all <- lapply(files,function(x){
 
 
 # 4) Load raster object with parameters that rasterized shapefiles should be resampled to ----------------
-layer30 <- rast("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/3_TempDatabase/SOC_SpatioTemporal/STATIC_COVARIATES/StatCov.tif")
-layer30 <- layer30[[1]]
-
 layer10 <- rast("DEM10m.tif")
 layer10
 
