@@ -70,13 +70,13 @@ start <- Sys.time()
 beginCluster(detectCores()-2)
 masks <- clusterR(stack(IMK), reclassify,
          args = list(rcl = reclasser1),
-         filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_grassland_mask.tif',
+         filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/Grassland_mask.tif',
          datatype = 'INT2U',
          overwrite = TRUE
 )
 endCluster()
 Sys.time()-start
-
+plot(masks[[1]])
 
 # 6) Number of years with grasslands at a pixel level ---------------------
 
@@ -84,7 +84,7 @@ start <- Sys.time()
 beginCluster(detectCores()-2)
 masks_sum <- clusterR(masks, calc,
                   args = list(sum, na.rm=T),
-                  filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_grassland_mask_sum.tif',
+                  filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/Grassland_mask_sum.tif',
                   datatype = 'INT2U',
                   overwrite = TRUE
 )
@@ -92,117 +92,17 @@ endCluster()
 Sys.time()-start
 plot(masks_sum)
 
-# 7) Masking no-grasslands zones out --------------------------------------
-IMK <- stack('CropData2011_2020_10m.tif')
-masks <- stack("O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_grassland_mask.tif")
-IMK_upd <- raster()
 
-plot(masks)
-start <- Sys.time()
-for (i in 1:nlayers(IMK)) {
-  IMK.tmp <- raster::mask(IMK[[i]],masks[[i]])
-  IMK_upd <- stack(IMK_upd,IMK.tmp)
-}
-Sys.time()-start
+# 7) Masking the final layer by the DK boundary ---------------------------
 
-writeRaster(IMK_upd, "O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_masked.tif",overwrite=T)
-
-
-# 8) Reclassifiy 2 --------------------------------------------------------
-IMK_upd <- brick("O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_masked.tif")
-requirements <- read.table(file = 'crop_drain_req.csv',
-                           sep = ';',
-                           header = TRUE
-)
-reclasser2 <- as.matrix(requirements[, c(1, 3)])
-
-start <- Sys.time()
-beginCluster(detectCores()-2)
-IMK_reclass <- clusterR(IMK_upd, reclassify,
-                  args = list(rcl = reclasser2),
-                  filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_masked_reclass.tif',
-                  datatype = 'INT2U',
-                  overwrite = TRUE
-)
-
-endCluster()
-Sys.time()-start
-
-plot(masks_reclass)
-
-
-# 9) Sums for each class --------------------------------------------------
-
-names <- c('yes', 'maybe', 'no')
-
-IMK_reclass <- brick('O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_masked_reclass.tif')
-
-start <- Sys.time()
-rs <- list()
-for(i in 1:3)
-{
-  beginCluster(detectCores()-2)
-  
-  rs[[i]] <- clusterR(IMK_reclass
-                      , calc
-                      , args = list(fun = function(x)
-                      {
-                        out <- sum(x == i, na.rm = TRUE)
-                        return(out)
-                        # if (is.na(sum(x))) {
-                        #   out <- 0
-                        # } else {
-                        #   out <- sum(x == i, na.rm = TRUE)
-                        #   return(out)
-                        # }
-                      })
-                      , filename = paste0('O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_drain_'
-                                          , names[i]
-                                          , '.tif')
-                      , overwrite = TRUE
-                      , datatype  = 'INT2U'
-                      , export = c('names', 'i')
-  )
-  
-  endCluster()
-}
-
-rs <- stack(rs)
-plot(rs)
-Sys.time()-start
-
-# 10) Total sum ------------------------------------------------------------
-start <- Sys.time()
-beginCluster(detectCores()-2)
-rsum <- clusterR(rs
-                 , calc
-                 , args = list(fun = function(x)
-                 {
-                   out <- sum(x)
-                   return(out)
-                 })
-                 , filename = 'O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_sum.tif'
-                 , overwrite = TRUE
-                 , datatype  = 'INT2S'
-                 , export = c('names', 'i')
-)
-
-endCluster()
-
-plot(rsum)
-Sys.time()-start
-
-# 11) Export the final layer clipped by the boundary polygon-------------------------------------------------
-#Cut out the final raster layers with the 
-#spatial extent of the Denmark boundaries
 lim <- vect("Limit/LIMIT.shp")
-rsum <- terra::crop(rast(rsum),
+masks_sum_clipped <- terra::crop(rast(masks_sum),
                     lim,
                     mask=T,
-                    filename="O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/IMK_sum_clipped.tif",
+                    filename="O:/Tech_AGRO/Jord/Sebastian/Fields_2011-2020/CropDataDK2011_2020/Grassland/Grassland_mask_sum_clipped.tif",
                     datatype="INT2S",
                     overwrite=T)
-plot(rsum)
+plot(masks_sum_clipped)
 #===============================================================
 # END
 #===============================================================
